@@ -1,0 +1,119 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function isValidString(text, minLen, maxLen) {
+      return text is string && 
+             text.size() >= minLen && 
+             text.size() <= maxLen;
+    }
+    
+    // Published video pairs
+    match /published_pairs/{pairId} {
+      allow read: if true;
+      
+      allow create: if isSignedIn() && 
+                      request.resource.data.publisherId == request.auth.uid &&
+                      isValidString(request.resource.data.title, 1, 100) &&
+                      isValidString(request.resource.data.publisherName, 1, 80) &&
+                      request.resource.data.video1 is map &&
+                      request.resource.data.video2 is map &&
+                      request.resource.data.sourceType in ['url', 'file'];
+      
+      // Owners may update presentation fields but cannot transfer ownership.
+      // Any signed-in user may increment the view counter by exactly one.
+      allow update: if (isOwner(resource.data.publisherId) &&
+                       request.resource.data.publisherId == resource.data.publisherId &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                         'title', 'thumbUrl', 'syncOffset', 'audioSource', 'folderId',
+                         'video1', 'video2', 'updatedAt', 'publisherName', 'publisherAvatar'
+                       ])) ||
+                      (isSignedIn() &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) &&
+                       request.resource.data.views == resource.data.views + 1);
+      
+      allow delete: if isOwner(resource.data.publisherId);
+    }
+    
+    // Folders
+    match /folders/{folderId} {
+      allow read: if true;
+      
+      allow create: if isSignedIn() && 
+                      request.resource.data.publisherId == request.auth.uid &&
+                      isValidString(request.resource.data.name, 1, 80);
+      
+      allow update: if isOwner(resource.data.publisherId) &&
+                      request.resource.data.publisherId == resource.data.publisherId &&
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                        'name', 'bannerUrl', 'publisherName', 'publisherAvatar'
+                      ]) &&
+                      isValidString(request.resource.data.name, 1, 80);
+      allow delete: if isOwner(resource.data.publisherId);
+    }
+    
+    // Likes — doc ID is {uid}_{pairId}
+    match /likes/{likeId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() &&
+                      request.resource.data.userId == request.auth.uid &&
+                      request.resource.data.pairId is string &&
+                      likeId == request.auth.uid + '_' + request.resource.data.pairId;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+    
+    // Favorites — doc ID is {uid}_{pairId}
+    match /favorites/{favId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() &&
+                      request.resource.data.userId == request.auth.uid &&
+                      request.resource.data.pairId is string &&
+                      favId == request.auth.uid + '_' + request.resource.data.pairId;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+    
+    // Video timestamp notes (Firestore-backed, visible to all)
+    match /video_notes/{noteId} {
+      allow read: if true;
+      allow create: if isSignedIn() &&
+                      request.resource.data.userId == request.auth.uid &&
+                      isValidString(request.resource.data.text, 1, 500) &&
+                      request.resource.data.pairId is string;
+      allow update: if isSignedIn() &&
+                      resource.data.userId == request.auth.uid &&
+                      request.resource.data.userId == resource.data.userId &&
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'userName', 'userAvatar', 'updatedAt']) &&
+                      isValidString(request.resource.data.text, 1, 500);
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+    
+    // Timestamp notes (legacy)
+    match /notes/{noteId} {
+      allow read: if true;
+      allow create: if isSignedIn() &&
+                      request.resource.data.userId == request.auth.uid &&
+                      isValidString(request.resource.data.content, 1, 300);
+      allow update: if isSignedIn() &&
+                      resource.data.userId == request.auth.uid &&
+                      request.resource.data.userId == resource.data.userId &&
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['content', 'userName', 'userAvatar', 'updatedAt']) &&
+                      isValidString(request.resource.data.content, 1, 300);
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+    
+    // User profiles
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+    }
+  }
+}

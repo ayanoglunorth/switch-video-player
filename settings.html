@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+
+<html lang="tr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description" content="Switch Video Player — Ayarlar.">
+
+    <title>Ayarlar — Switch Player</title>
+    <link rel="icon" type="image/png" href="assets/img/logo.png">
+
+    <link rel="stylesheet" href="css/main.css">
+
+    <style>
+
+        .settings-card {
+
+            background: var(--c-surface);
+
+            border: 1px solid var(--c-border);
+
+            border-radius: var(--radius-xl);
+
+            padding: var(--space-xl);
+
+            max-width: 720px;
+
+            margin: 0 auto;
+
+        }
+
+        .settings-section {
+
+            margin-bottom: var(--space-xl);
+
+        }
+
+        .settings-section-title {
+
+            font-family: var(--font-heading);
+
+            font-size: 0.85rem;
+
+            color: var(--c-text-dim);
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.1em;
+
+            margin-bottom: var(--space-md);
+
+            padding-bottom: var(--space-sm);
+
+            border-bottom: 1px solid var(--c-border);
+
+        }
+
+        .scale-row {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: var(--space-md);
+
+        }
+
+        .scale-value {
+
+            font-family: var(--font-heading);
+
+            font-size: 1.1rem;
+
+            min-width: 42px;
+
+            text-align: right;
+
+        }
+
+        .mouse-btn-select {
+
+            background: var(--c-surface-2);
+
+            border: 1px solid var(--c-border-2);
+
+            border-radius: var(--radius-md);
+
+            color: var(--c-text);
+
+            font-family: var(--font-body);
+
+            font-size: 0.875rem;
+
+            padding: 0.5rem 0.75rem;
+
+            outline: none;
+
+            cursor: pointer;
+
+        }
+
+        .mouse-btn-select:focus {
+
+            border-color: var(--c-accent);
+
+            box-shadow: 0 0 0 3px var(--c-accent-glow);
+
+        }
+
+        .save-bar {
+
+            position: fixed;
+
+            bottom: var(--space-xl);
+
+            left: 50%;
+
+            transform: translateX(-50%) translateY(80px);
+
+            background: var(--c-surface-2);
+
+            border: 1px solid var(--c-border-2);
+
+            border-radius: var(--radius-xl);
+
+            padding: var(--space-sm) var(--space-lg);
+
+            display: flex;
+
+            align-items: center;
+
+            gap: var(--space-md);
+
+            box-shadow: var(--shadow-lg);
+
+            transition: transform 300ms var(--ease-out);
+
+            z-index: 50;
+
+        }
+
+        .save-bar.visible {
+
+            transform: translateX(-50%) translateY(0);
+
+        }
+
+        .save-bar-text {
+
+            font-size: 0.875rem;
+
+            color: var(--c-text-muted);
+
+        }
+
+        tr.recording-row td {
+
+            background: rgba(225, 29, 72, 0.05);
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    
+
+    <nav class="navbar" role="navigation" aria-label="Ana navigasyon">
+
+        <div class="navbar-brand" onclick="location.href='index.html'" role="link" tabindex="0"
+
+            onkeydown="if(event.key==='Enter')location.href='index.html'" aria-label="Ana sayfaya dön">
+
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+
+                <polyline points="15 18 9 12 15 6" />
+
+            </svg>
+
+            Geri
+
+        </div>
+
+        <div class="navbar-brand" style="cursor:default; pointer-events:none;">
+
+            <img src="assets/img/logo.png" alt="Switch Player" style="height:40px; width:auto; object-fit:contain; display:block;">
+
+        </div>
+
+        <div style="width:80px;"></div>
+
+    </nav>
+
+    <main class="page-content">
+
+        <div class="settings-card">
+
+            <div class="section-header" style="margin-bottom:var(--space-xl)">
+
+                <div>
+
+                    <h1 class="section-title">Ayarlar</h1>
+
+                    <p class="section-subtitle">Klavye, fare ve görünüm ayarları</p>
+
+                </div>
+
+                <button class="btn btn-ghost" id="resetBtn">
+
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+
+                        <polyline points="1 4 1 10 7 10" />
+
+                        <path d="M3.51 15a9 9 0 1 0 .49-3.76" />
+
+                    </svg>
+
+                    Sıfırla
+
+                </button>
+
+            </div>
+
+            
+
+            <div class="settings-section">
+
+                <div class="settings-section-title">Görünüm Ölçeği</div>
+
+                <div class="scale-row">
+
+                    <input type="range" class="range-slider" id="uiScaleSlider" min="0.8" max="1.4" step="0.05"
+
+                        value="1.0" aria-label="UI ölçeği">
+
+                    <div class="scale-value" id="scaleValue">1.0×</div>
+
+                </div>
+
+                <p class="text-xs text-dim mt-sm">Tüm sayfalardaki metin ve eleman boyutlarını etkiler.</p>
+
+            </div>
+
+            <div class="divider"></div>
+
+            
+
+            <div class="settings-section">
+
+                <div class="settings-section-title">Klavye Kısayolları</div>
+
+                <p class="text-xs text-dim mb-md" style="margin-bottom:var(--space-md);">
+
+                    Bir tuşa tıkladıktan sonra atamak istediğiniz tuşa basın. Tuş kombinasyonları desteklenmez.
+
+                </p>
+
+                <table class="settings-table" role="table" aria-label="Klavye kısayol atamaları">
+
+                    <thead>
+
+                        <tr>
+
+                            <th scope="col">İşlem</th>
+
+                            <th scope="col">Atanmış Tuş</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="keyTable">
+
+                        
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <div class="divider"></div>
+
+            
+
+            <div class="settings-section">
+
+                <div class="settings-section-title">Fare Tuşu Atamaları</div>
+
+                <table class="settings-table" role="table" aria-label="Fare tuşu atamaları">
+
+                    <thead>
+
+                        <tr>
+
+                            <th scope="col">İşlem</th>
+
+                            <th scope="col">Fare Tuşu</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="mouseTable">
+
+                        
+
+                    </tbody>
+
+                </table>
+
+                <p class="text-xs text-dim mt-sm">
+
+                    Sol tuş (0) her zaman temel tıklama. Yan tuşlar için 3 ve 4 değerlerini kullanın.
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    
+
+    <div class="save-bar" id="saveBar" role="status" aria-live="polite">
+
+        <span class="save-bar-text">Kaydedilmemiş değişiklikler var</span>
+
+        <button class="btn btn-primary" id="saveBtn">
+
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+
+                <polyline points="20 6 9 17 4 12" />
+
+            </svg>
+
+            Kaydet
+
+        </button>
+
+    </div>
+
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+    <script src="js/storage.js"></script>
+
+    <script>
+
+        applyUiScale();
+
+        let settings = getSettings();
+
+        let dirty = false;
+
+        let recordingKey = null;
+
+        const KEY_ACTIONS = [
+
+            { id: 'playPause', label: 'Oynat / Duraklat' },
+
+            { id: 'seekForward', label: '5s İleri' },
+
+            { id: 'seekBackward', label: '5s Geri' },
+
+            { id: 'switchAngle', label: 'Açı Değiştir' },
+
+            { id: 'fullscreen', label: 'Tam Ekran' },
+
+            { id: 'close', label: 'Kapat' },
+
+            { id: 'speedUp', label: 'Hız Artır' },
+
+            { id: 'speedDown', label: 'Hız Azalt' },
+
+        ];
+
+        const MOUSE_ACTIONS = [
+
+            { id: 'playPause', label: 'Oynat / Duraklat' },
+
+            { id: 'switchAngle', label: 'Açı Değiştir' },
+
+        ];
+
+        function formatKey(keyCode) {
+
+            const map = {
+
+                ' ': 'Space',
+
+                'ArrowRight': '→',
+
+                'ArrowLeft': '←',
+
+                'ArrowUp': '↑',
+
+                'ArrowDown': '↓',
+
+                'Escape': 'Esc',
+
+                'Enter': 'Enter',
+
+                'Backspace': '⌫',
+
+            };
+
+            if (map[keyCode]) return map[keyCode];
+
+            if (/^Key[A-Z]$/.test(keyCode)) return keyCode.slice(3);
+
+            if (/^Digit[0-9]$/.test(keyCode)) return keyCode.slice(5);
+
+            if (/^F\d+$/.test(keyCode)) return keyCode;
+
+            return keyCode;
+
+        }
+
+        function renderKeyTable() {
+
+            const tbody = document.getElementById('keyTable');
+
+            tbody.innerHTML = KEY_ACTIONS.map(action => `
+
+        <tr id="row-${action.id}">
+
+          <td>${action.label}</td>
+
+          <td>
+
+            <span
+
+              class="key-badge"
+
+              id="key-${action.id}"
+
+              data-action="${action.id}"
+
+              tabindex="0"
+
+              role="button"
+
+              aria-label="${action.label} tuşunu değiştir, şu an: ${formatKey(settings.keys[action.id])}"
+
+              onclick="startRecording('${action.id}')"
+
+              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startRecording('${action.id}')}"
+
+            >${formatKey(settings.keys[action.id])}</span>
+
+          </td>
+
+        </tr>
+
+      `).join('');
+
+        }
+
+        function renderMouseTable() {
+
+            const tbody = document.getElementById('mouseTable');
+
+            const opts = { '-1': 'Atanmamış', '0': 'Sol (0)', '1': 'Orta (1)', '2': 'Sağ (2)', '3': 'Geri (3)', '4': 'İleri (4)' };
+
+            tbody.innerHTML = MOUSE_ACTIONS.map(action => `
+
+        <tr>
+
+          <td>${action.label}</td>
+
+          <td>
+
+            <select
+
+              class="mouse-btn-select"
+
+              id="mouse-${action.id}"
+
+              aria-label="${action.label} fare tuşu"
+
+              onchange="onMouseChange('${action.id}', this.value)"
+
+            >
+
+              ${Object.entries(opts).map(([v, l]) =>
+
+                `<option value="${v}" ${parseInt(settings.mouseButtons[action.id]) === parseInt(v) ? 'selected' : ''}>${l}</option>`
+
+            ).join('')}
+
+            </select>
+
+          </td>
+
+        </tr>
+
+      `).join('');
+
+        }
+
+        function startRecording(actionId) {
+
+            if (recordingKey) stopRecording(false);
+
+            recordingKey = actionId;
+
+            const badge = document.getElementById(`key-${actionId}`);
+
+            const row = document.getElementById(`row-${actionId}`);
+
+            badge.classList.add('recording');
+
+            badge.textContent = '...';
+
+            row.classList.add('recording-row');
+
+            badge.setAttribute('aria-label', 'Tuşa basın');
+
+        }
+
+        function stopRecording(save) {
+
+            if (!recordingKey) return;
+
+            const badge = document.getElementById(`key-${recordingKey}`);
+
+            const row = document.getElementById(`row-${recordingKey}`);
+
+            badge.classList.remove('recording');
+
+            row.classList.remove('recording-row');
+
+            if (!save) {
+
+                badge.textContent = formatKey(settings.keys[recordingKey]);
+
+            }
+
+            recordingKey = null;
+
+        }
+
+        document.addEventListener('keydown', e => {
+
+            if (!recordingKey) return;
+
+            e.preventDefault();
+
+            e.stopPropagation();
+
+            if (e.key === 'Escape') { stopRecording(false); return; }
+
+            const newKey = e.code || e.key;
+
+            const conflict = KEY_ACTIONS.find(a => a.id !== recordingKey && settings.keys[a.id] === newKey);
+
+            if (conflict) {
+
+                showToast(`Bu tuş "${conflict.label}" için atanmış`, 'warning');
+
+                stopRecording(false);
+
+                return;
+
+            }
+
+            settings.keys[recordingKey] = newKey;
+
+            const badge = document.getElementById(`key-${recordingKey}`);
+
+            badge.textContent = formatKey(newKey);
+
+            badge.setAttribute('aria-label', `${KEY_ACTIONS.find(a => a.id === recordingKey)?.label} tuşunu değiştir, şu an: ${formatKey(newKey)}`);
+
+            stopRecording(true);
+
+            markDirty();
+
+        });
+
+        document.addEventListener('click', e => {
+
+            if (recordingKey && !e.target.closest('.key-badge')) {
+
+                stopRecording(false);
+
+            }
+
+        });
+
+        function onMouseChange(actionId, val) {
+
+            settings.mouseButtons[actionId] = parseInt(val);
+
+            markDirty();
+
+        }
+
+        const scaleSlider = document.getElementById('uiScaleSlider');
+
+        const scaleValue = document.getElementById('scaleValue');
+
+        scaleSlider.value = settings.uiScale;
+
+        scaleValue.textContent = settings.uiScale.toFixed(2) + '×';
+
+        scaleSlider.addEventListener('input', () => {
+
+            const v = parseFloat(scaleSlider.value);
+
+            settings.uiScale = v;
+
+            scaleValue.textContent = v.toFixed(2) + '×';
+
+            document.documentElement.style.setProperty('--ui-scale', v);
+
+            markDirty();
+
+        });
+
+        function markDirty() {
+
+            dirty = true;
+
+            document.getElementById('saveBar').classList.add('visible');
+
+        }
+
+        document.getElementById('saveBtn').addEventListener('click', saveAll);
+
+        function saveAll() {
+
+            saveSettings(settings);
+
+            dirty = false;
+
+            document.getElementById('saveBar').classList.remove('visible');
+
+            showToast('Ayarlar kaydedildi.', 'success');
+
+        }
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+
+            if (!confirm('Tüm ayarları varsayılana sıfırlamak istiyor musunuz?')) return;
+
+            localStorage.removeItem('svp-settings');
+
+            settings = getSettings();
+
+            scaleSlider.value = settings.uiScale;
+
+            scaleValue.textContent = settings.uiScale.toFixed(2) + '×';
+
+            document.documentElement.style.setProperty('--ui-scale', settings.uiScale);
+
+            renderKeyTable();
+
+            renderMouseTable();
+
+            markDirty();
+
+            showToast('Ayarlar sıfırlandı.', 'info');
+
+        });
+
+        function showToast(message, type = 'info', duration = 3000) {
+
+            const tc = document.getElementById('toastContainer');
+
+            const t = document.createElement('div');
+
+            t.className = `toast ${type}`;
+
+            t.innerHTML = `<span>${message}</span>`;
+
+            tc.appendChild(t);
+
+            setTimeout(() => {
+
+                t.style.transition = 'all 300ms ease';
+
+                t.style.opacity = '0';
+
+                t.style.transform = 'translateY(10px)';
+
+                setTimeout(() => t.remove(), 300);
+
+            }, duration);
+
+        }
+
+        renderKeyTable();
+
+        renderMouseTable();
+
+    </script>
+
+</body>
+
+</html>

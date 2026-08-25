@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "video_notes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "pairId", "order": "ASCENDING" },
+        { "fieldPath": "time", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Switch Video Player — Yeni video çifti ekle.">
+    <title>Video Ekle — Switch Player</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        .add-card {
+            background: var(--c-surface);
+            border: 1px solid var(--c-border);
+            border-radius: var(--radius-xl);
+            padding: var(--space-xl);
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        .video-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-lg);
+        }
+
+        @media (max-width: 600px) {
+            .video-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .video-slot {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+            min-width: 0;
+            
+            overflow: hidden;
+        }
+
+        .slot-label {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-family: var(--font-heading);
+            font-size: 0.9rem;
+            color: var(--c-text-muted);
+        }
+
+        .slot-num {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--c-accent);
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gdrive-hint {
+            font-size: 0.72rem;
+            color: var(--c-text-dim);
+            margin-top: -var(--space-xs);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .gdrive-detected {
+            font-size: 0.72rem;
+            color: #60a5fa;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: var(--space-xs);
+        }
+
+        .file-name-display {
+            font-size: 0.8rem;
+            color: var(--c-text-muted);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            background: var(--c-surface-2);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--c-border);
+        }
+
+        .title-row {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        .error-msg {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: var(--radius-md);
+            padding: var(--space-sm) var(--space-md);
+            font-size: 0.85rem;
+            color: #fca5a5;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .footer-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: var(--space-md);
+            margin-top: var(--space-xl);
+            padding-top: var(--space-lg);
+            border-top: 1px solid var(--c-border);
+        }
+    </style>
+</head>
+
+<body>
+    
+    <nav class="navbar" role="navigation" aria-label="Ana navigasyon">
+        <div class="navbar-brand" onclick="location.href='index.html'" role="link" tabindex="0"
+            onkeydown="if(event.key==='Enter')location.href='index.html'" aria-label="Ana sayfaya dön">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="15 18 9 12 15 6" />
+            </svg>
+            Geri
+        </div>
+        <div class="navbar-brand" style="cursor:default; pointer-events:none;">
+            <img src="assets/img/logo.png" alt="Switch Player" style="height:40px; width:auto; object-fit:contain; display:block;">
+        </div>
+        <div style="width:80px;"></div>
+    </nav>
+
+    
+    <main class="page-content">
+        
+        <div class="step-indicator" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="3"
+            aria-label="Adım 1 / 3: Video Kaynak">
+            <div class="step active">
+                <div class="step-num">1</div>
+                <span>Kaynak</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <span>Senkronizasyon</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <span>Hazır</span>
+            </div>
+        </div>
+
+        
+        <div class="add-card" role="form" aria-label="Video çifti ekleme formu">
+            <div class="section-header" style="margin-bottom:var(--space-lg)">
+                <div>
+                    <h1 class="section-title">Video Ekle</h1>
+                    <p class="section-subtitle">İki farklı açıdan çekilmiş videoyu yükle</p>
+                </div>
+                
+                <div class="source-toggle" role="group" aria-label="Video kaynak türü">
+                    <button class="source-toggle-btn active" id="btnUrl" onclick="setMode('url')" aria-pressed="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                            style="display:inline-block;vertical-align:middle;margin-right:4px;" aria-hidden="true">
+                            <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+                            <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+                        </svg>
+                        Link
+                    </button>
+                    <button class="source-toggle-btn" id="btnFile" onclick="setMode('file')" aria-pressed="false">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                            style="display:inline-block;vertical-align:middle;margin-right:4px;" aria-hidden="true">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                        Dosya
+                    </button>
+                </div>
+            </div>
+
+            
+            <div class="error-msg hidden" id="errorMsg" role="alert">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="15" y1="9" x2="9" y2="15" />
+                    <line x1="9" y1="9" x2="15" y2="15" />
+                </svg>
+                <span id="errorText"></span>
+            </div>
+
+            
+            <div class="video-inputs mb-lg">
+                <div class="form-group">
+                    <label class="form-label" for="titleInput">Çift Adı</label>
+                    <input class="form-input" type="text" id="titleInput" placeholder="ör. Konser Kamera 1 & 2"
+                        maxlength="80" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="thumbInput">Kapak Resmi URL (İsteğe Bağlı)</label>
+                    <input class="form-input" type="url" id="thumbInput" placeholder="https://..." autocomplete="off">
+                </div>
+            </div>
+
+            
+            <div id="urlMode">
+                <div class="video-inputs">
+                    
+                    <div class="video-slot">
+                        <div class="slot-label">
+                            <div class="slot-num" aria-hidden="true">1</div>
+                            Video 1 — Açı A
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label sr-only" for="url1">Video 1 URL</label>
+                            <input class="form-input" type="url" id="url1"
+                                placeholder="https:// veya Google Drive linki" autocomplete="off"
+                                oninput="detectGDrive('url1', 'gd1')">
+                        </div>
+                        <div class="gdrive-detected hidden" id="gd1">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            <span id="gd1-text">Bulut bağlantısı algılandı</span>
+                        </div>
+                        <p class="gdrive-hint">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                            Drive / Yandex: "Bağlantıya sahip herkes" erişimine izin ver
+                        </p>
+                    </div>
+
+                    
+                    <div class="video-slot">
+                        <div class="slot-label">
+                            <div class="slot-num" aria-hidden="true">2</div>
+                            Video 2 — Açı B
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label sr-only" for="url2">Video 2 URL</label>
+                            <input class="form-input" type="url" id="url2"
+                                placeholder="https:// veya Google Drive linki" autocomplete="off"
+                                oninput="detectGDrive('url2', 'gd2')">
+                        </div>
+                        <div class="gdrive-detected hidden" id="gd2">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            <span id="gd2-text">Bulut bağlantısı algılandı</span>
+                        </div>
+                        <p class="gdrive-hint">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                            Drive / Yandex: "Bağlantıya sahip herkes" erişimine izin ver
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div id="fileMode" class="hidden">
+                <div class="video-inputs">
+                    
+                    <div class="video-slot">
+                        <div class="slot-label">
+                            <div class="slot-num" aria-hidden="true">1</div>
+                            Video 1 — Açı A
+                        </div>
+                        <label class="file-drop" id="drop1" aria-label="Video 1 dosyası seç veya bırak">
+                            <input type="file" id="file1" accept="video/*" onchange="onFileChange(1)">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
+                            <span style="color:var(--c-text-muted); font-size:0.875rem;">Dosya seç veya sürükle
+                                bırak</span>
+                            <span style="color:var(--c-text-dim); font-size:0.75rem;">MP4, MOV, MKV, WebM...</span>
+                        </label>
+                        <div class="file-info hidden" id="finfo1">
+                            <div class="file-name" id="fname1text"></div>
+                            <div class="file-size" id="fsize1text"></div>
+                            <div class="upload-progress-container" id="fprog1">
+                                <div class="upload-progress-bar" id="fbar1"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="video-slot">
+                        <div class="slot-label">
+                            <div class="slot-num" aria-hidden="true">2</div>
+                            Video 2 — Açı B
+                        </div>
+                        <label class="file-drop" id="drop2" aria-label="Video 2 dosyası seç veya bırak">
+                            <input type="file" id="file2" accept="video/*" onchange="onFileChange(2)">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
+                            <span style="color:var(--c-text-muted); font-size:0.875rem;">Dosya seç veya sürükle
+                                bırak</span>
+                            <span style="color:var(--c-text-dim); font-size:0.75rem;">MP4, MOV, MKV, WebM...</span>
+                        </label>
+                        <div class="file-info hidden" id="finfo2">
+                            <div class="file-name" id="fname2text"></div>
+                            <div class="file-size" id="fsize2text"></div>
+                            <div class="upload-progress-container" id="fprog2">
+                                <div class="upload-progress-bar" id="fbar2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="error-msg mt-md"
+                    style="background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.3);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fcd34d" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                    <span style="color:#fcd34d;">Dosya modu: Seçilen videolar oturum boyunca geçerlidir. Sayfa
+                        yenilendikten sonra yeniden seçmek gerekir. Kalıcı kullanım için Link modunu tercih edin.</span>
+                </div>
+            </div>
+
+            
+            <div class="footer-actions">
+                <button class="btn btn-ghost" onclick="location.href='index.html'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                    İptal
+                </button>
+                <button class="btn btn-primary btn-lg" id="nextBtn" onclick="goToSync()">
+                    Senkronizasyon
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/gdrive.js"></script>
+    <script>
+        applyUiScale();
+
+        let currentMode = 'url';
+        let blobUrls = { 1: null, 2: null };
+        let tempPair = null;
+
+        function setMode(mode) {
+            currentMode = mode;
+            const urlEl = document.getElementById('urlMode');
+            const fileEl = document.getElementById('fileMode');
+            const btnUrl = document.getElementById('btnUrl');
+            const btnFile = document.getElementById('btnFile');
+
+            if (mode === 'url') {
+                urlEl.classList.remove('hidden');
+                fileEl.classList.add('hidden');
+                btnUrl.classList.add('active');
+                btnFile.classList.remove('active');
+                btnUrl.setAttribute('aria-pressed', 'true');
+                btnFile.setAttribute('aria-pressed', 'false');
+            } else {
+                urlEl.classList.add('hidden');
+                fileEl.classList.remove('hidden');
+                btnUrl.classList.remove('active');
+                btnFile.classList.add('active');
+                btnUrl.setAttribute('aria-pressed', 'false');
+                btnFile.setAttribute('aria-pressed', 'true');
+            }
+            hideError();
+        }
+
+        function detectGDrive(inputId, badgeId) {
+            const val = document.getElementById(inputId).value;
+            const badge = document.getElementById(badgeId);
+            const textEl = document.getElementById(badgeId + '-text');
+            if (isGDriveUrl(val)) {
+                badge.classList.remove('hidden');
+                textEl.textContent = 'Google Drive bağlantısı algılandı';
+            } else if (isYandexUrl && isYandexUrl(val)) {
+                badge.classList.remove('hidden');
+                textEl.textContent = 'Yandex Disk bağlantısı algılandı';
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024, sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function onFileChange(num) {
+            const input = document.getElementById(`file${num}`);
+            const finfo = document.getElementById(`finfo${num}`);
+            const ftext = document.getElementById(`fname${num}text`);
+            const fsize = document.getElementById(`fsize${num}text`);
+            const file = input.files[0];
+
+            if (file) {
+                if (blobUrls[num]) URL.revokeObjectURL(blobUrls[num]);
+                blobUrls[num] = URL.createObjectURL(file);
+
+                ftext.textContent = file.name;
+                fsize.textContent = formatBytes(file.size);
+                finfo.classList.remove('hidden');
+
+                const drop = document.getElementById(`drop${num}`);
+                drop.style.borderColor = 'var(--c-success)';
+                drop.style.background = 'rgba(34,197,94,0.05)';
+            }
+        }
+
+        ['drop1', 'drop2'].forEach((id, idx) => {
+            const el = document.getElementById(id);
+            el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('drag-over'); });
+            el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+            el.addEventListener('drop', () => el.classList.remove('drag-over'));
+        });
+
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            document.getElementById('errorText').textContent = msg;
+            el.classList.remove('hidden');
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function hideError() {
+            document.getElementById('errorMsg').classList.add('hidden');
+        }
+
+        async function goToSync() {
+            hideError();
+            const title = document.getElementById('titleInput').value.trim();
+
+            let video1 = {}, video2 = {};
+            let valid = true;
+
+            const btn = document.getElementById('nextBtn');
+            const originalBtnContent = btn.innerHTML;
+
+            if (currentMode === 'url') {
+                const u1 = document.getElementById('url1').value.trim();
+                const u2 = document.getElementById('url2').value.trim();
+
+                if (!u1 || !u2) {
+                    showError('Her iki video için de URL giriniz.');
+                    return;
+                }
+
+                const isValidUrl = (u) => {
+                    try { new URL(u); return true; } catch { return false; }
+                };
+
+                if (!isValidUrl(u1) || !isValidUrl(u2)) {
+                    showError('Geçerli bir URL formatı giriniz (https:// ile başlamalı).');
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.innerHTML = `Bağlantılar Çözümleniyor... <svg class="spinner" viewBox="0 0 50 50" style="width:16px;height:16px;margin-left:8px;animation:spin 1s linear infinite;"><circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" stroke-dasharray="31.4 31.4"></circle></svg>`;
+
+                try {
+                    const r1 = await resolveCloudUrl(u1);
+                    const r2 = await resolveCloudUrl(u2);
+
+                    if (!r1.directUrl || !r2.directUrl) {
+                        throw new Error('Bulut bağlantılarından biri çözümlenemedi.');
+                    }
+
+                    video1 = { src: r1.directUrl, label: 'Açı A', provider: r1.provider, fileId: r1.fileId, rawUrl: u1 };
+                    video2 = { src: r2.directUrl, label: 'Açı B', provider: r2.provider, fileId: r2.fileId, rawUrl: u2 };
+                } catch (e) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtnContent;
+                    showError(e.message || 'URL çözümleme hatası.');
+                    return;
+                }
+
+            } else {
+                const f1 = document.getElementById('file1').files[0];
+                const f2 = document.getElementById('file2').files[0];
+
+                if (!f1 || !f2) {
+                    showError('Her iki video dosyasını da seçiniz.');
+                    return;
+                }
+
+                video1 = { src: blobUrls[1], label: 'Açı A', isGDrive: false, fileName: f1.name };
+                video2 = { src: blobUrls[2], label: 'Açı B', isGDrive: false, fileName: f2.name };
+            }
+
+            const thumbUrl = document.getElementById('thumbInput')?.value.trim() || undefined;
+
+            const derivedTitle = title ||
+                (currentMode === 'url'
+                    ? 'Video Çifti'
+                    : `${video1.fileName?.replace(/\.[^.]+$/, '') || 'Video'} & ${video2.fileName?.replace(/\.[^.]+$/, '') || 'Video'}`);
+
+            tempPair = {
+                id: generateId(),
+                title: derivedTitle,
+                sourceType: currentMode,
+                video1,
+                video2,
+                thumbUrl,
+                syncOffset: 0,
+                audioSource: 1,
+                createdAt: new Date().toISOString(),
+            };
+
+            sessionStorage.setItem('svp-temp-pair', JSON.stringify(tempPair));
+
+            if (currentMode === 'file') {
+                const btn = document.getElementById('nextBtn');
+                btn.disabled = true;
+                btn.innerHTML = `Yükleniyor... <svg class="spinner" viewBox="0 0 50 50" style="width:16px;height:16px;margin-left:8px;animation:spin 1s linear infinite;"><circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" stroke-dasharray="31.4 31.4"></circle></svg>`;
+
+                const p1 = document.getElementById('fprog1');
+                const p2 = document.getElementById('fprog2');
+                const b1 = document.getElementById('fbar1');
+                const b2 = document.getElementById('fbar2');
+
+                p1.classList.add('active');
+                p2.classList.add('active');
+
+                b1.style.width = '30%'; b2.style.width = '30%';
+
+                if (!tempPair.thumbUrl) {
+                    const generatedThumb = await generateThumbnail(blobUrls[1]);
+                    if (generatedThumb) {
+                        tempPair.thumbUrl = generatedThumb;
+
+                        sessionStorage.setItem('svp-temp-pair', JSON.stringify(tempPair));
+                    }
+                }
+
+                setTimeout(() => { b1.style.width = '70%'; b2.style.width = '70%'; }, 200);
+                setTimeout(() => {
+                    b1.style.width = '100%'; b2.style.width = '100%';
+                    setTimeout(() => location.href = `sync.html?new=1`, 250);
+                }, 400);
+
+            } else {
+                location.href = `sync.html?new=1`;
+            }
+        }
+    </script>
+</body>
+
+</html>
