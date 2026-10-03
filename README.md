@@ -1,6 +1,6 @@
 # Switch Video Player
 
-Switch Video Player is a browser-based tool for reviewing two video sources in sync and switching between them during playback. It is suited to angle comparison, coaching review, visual analysis, and other workflows where timing needs to remain aligned.
+Switch Video Player is a browser tool for reviewing two video sources in sync and switching between them during playback. It fits angle comparison, coaching review, visual analysis, and other workflows where timing needs to stay aligned.
 
 ## Features
 
@@ -58,7 +58,7 @@ firebase use --add
 firebase deploy --only firestore:rules,firestore:indexes
 ```
 
-The repository deliberately contains no Firebase project binding or deployment credential. Configure hosting and CI secrets in your own environment before deploying.
+The repository contains no Firebase project binding or deployment credential. Configure hosting and CI secrets in your own environment before deploying.
 
 ## Project structure
 
@@ -77,7 +77,7 @@ See [SECURITY.md](SECURITY.md) for responsible disclosure guidance and the deplo
 
 ## Contributing
 
-Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md), keep changes focused, and ensure `npm run build` succeeds before opening a pull request.
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md), keep changes focused, and make sure `npm run build` succeeds before opening a pull request.
 
 ## License
 
